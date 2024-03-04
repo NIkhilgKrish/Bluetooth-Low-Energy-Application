@@ -69,7 +69,7 @@ void blueapp_init(void) {
 		printf("aci_gatt_update_char_value : Failed !! \n\r");
 	}
 
-	ret = add_simple_service();
+	ret = add_services();
 
 	if( ret != BLE_STATUS_SUCCESS ) {
 		printf("add_simple_service : Failed !! \n\r");
