@@ -14,6 +14,7 @@
 #include "bluenrg1_hci_le.h"
 
 #include "app_bluenrg.h"
+#include "service.h"
 
 #define BDADDRS_SIZE 6
 uint8_t SERVER_BDARR[] = {0X01, 0X02, 0X03, 0X04, 0X05, 0X06};
@@ -66,6 +67,12 @@ void blueapp_init(void) {
 
 	if( ret != BLE_STATUS_SUCCESS ) {
 		printf("aci_gatt_update_char_value : Failed !! \n\r");
+	}
+
+	ret = add_simple_service();
+
+	if( ret != BLE_STATUS_SUCCESS ) {
+		printf("add_simple_service : Failed !! \n\r");
 	}
 
 }
