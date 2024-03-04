@@ -1,0 +1,11 @@
+STM32F411RETX_FLASH.ld
+STM32F411RETX_RAM.ld
+Includes/
+Debug/
+BlueNRG-2/
+BLE_dev.launch
+BLE_dev.ioc
+.cproject
+.mxproject
+.project
+.settings/
