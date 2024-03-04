@@ -39,7 +39,7 @@ void blueapp_init(void) {
 	 * 7. Add custom service
 	 *
 	 */
-	hci_init(NULL, NULL);
+	hci_init(APP_UserEvtRx, NULL);
 
 	hci_reset();
 
@@ -87,5 +87,7 @@ void bluenrg_process(void) {
 	if( ret == BLE_STATUS_SUCCESS ) {
 		printf("aci_gap_set_discoverable : Success !! \n\r");
 	}
+
+	hci_user_evt_proc();
 }
 
