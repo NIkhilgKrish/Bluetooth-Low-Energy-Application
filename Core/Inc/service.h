@@ -10,6 +10,7 @@
 
 tBleStatus add_services(void);
 void APP_UserEvtRx(void *pData);
+void send_data(uint8_t* new_data, uint8_t no_bytes);
 
 
 #endif /* INC_SERVICE_H_ */

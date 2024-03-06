@@ -15,12 +15,12 @@ uint8_t SERVICE_1_UUID[16] = {0X66, 0X9a, 0X03, 0X54, 0X55, 0XC6, 0X66, 0X9a, 0X
 uint8_t CHAR_1_1_UUID[16] =   {0X76, 0XAA, 0XCD, 0XE2, 0X10, 0X0F, 0X15, 0X2a, 0X71, 0X99, 0X42, 0XB6, 0XAA, 0X73, 0X00, 0X8F};
 uint8_t CHAR_1_2_UUID[16] =   {0X76, 0XAA, 0XCD, 0XE3, 0X10, 0X0F, 0X15, 0X2a, 0X71, 0X99, 0X42, 0XB6, 0XAA, 0X73, 0X00, 0X8F};
 
-uint8_t SERVICE_2_UUID[16] = {0x1D, 0x3F, 0x72, 0xFD, 0xD6, 0x22, 0x42, 0xF9, 0xB7, 0x5B, 0xE3, 0x9B, 0x4A, 0xF1, 0x13, 0x7A};
-uint8_t CHAR_2_1_UUID[16] =   {0X76, 0XAA, 0XCD, 0XE4, 0X10, 0X0F, 0X15, 0X2a, 0X71, 0X99, 0X42, 0XB6, 0XAA, 0X73, 0X00, 0X8F};
-uint8_t CHAR_2_2_UUID[16] =   {0X76, 0XAA, 0XCD, 0XE5, 0X10, 0X0F, 0X15, 0X2a, 0X71, 0X99, 0X42, 0XB6, 0XAA, 0X73, 0X00, 0X8F};
+//uint8_t SERVICE_2_UUID[16] = {0x1D, 0x3F, 0x72, 0xFD, 0xD6, 0x22, 0x42, 0xF9, 0xB7, 0x5B, 0xE3, 0x9B, 0x4A, 0xF1, 0x13, 0x7A};
+//uint8_t CHAR_2_1_UUID[16] =   {0X76, 0XAA, 0XCD, 0XE4, 0X10, 0X0F, 0X15, 0X2a, 0X71, 0X99, 0X42, 0XB6, 0XAA, 0X73, 0X00, 0X8F};
+//uint8_t CHAR_2_2_UUID[16] =   {0X76, 0XAA, 0XCD, 0XE5, 0X10, 0X0F, 0X15, 0X2a, 0X71, 0X99, 0X42, 0XB6, 0XAA, 0X73, 0X00, 0X8F};
 
-uint16_t service_1_handle, service_2_handle;
-uint16_t char_1_1_handle, char_1_2_handle, char_2_1_handle, char_2_2_handle;
+uint16_t service_chat_handle;
+uint16_t char_tx_handle, char_rx_handle;
 
 int prop1 = 100;
 int prop2 = 200;
@@ -35,29 +35,20 @@ uint8_t notification_enabled = 0;
 
 tBleStatus add_services(void) {
 	tBleStatus ret;
-	Service_UUID_t service_1_uuid, service_2_uuid;
-	Char_UUID_t char_1_1_uuid, char_1_2_uuid, char_2_1_uuid, char_2_2_uuid;
-	BLUENRG_memcpy(service_1_uuid.Service_UUID_128, SERVICE_1_UUID, 16);
-	BLUENRG_memcpy(service_2_uuid.Service_UUID_128, SERVICE_2_UUID, 16);
+	Service_UUID_t service_uuid;
+	Char_UUID_t char_uuid_tx, char_uuid_rx;
+	BLUENRG_memcpy(service_uuid.Service_UUID_128, SERVICE_1_UUID, 16);
 
 	/* Add Services */
 
-	ret = aci_gatt_add_service(UUID_TYPE_128, &service_1_uuid, PRIMARY_SERVICE, 7, &service_1_handle);
+	ret = aci_gatt_add_service(UUID_TYPE_128, &service_uuid, PRIMARY_SERVICE, 7, &service_chat_handle);
 
 	if( ret != BLE_STATUS_SUCCESS ) {
 		printf("aci_gatt_add_service 1 : Failed !! \n\r");
 	}
 
-	ret = aci_gatt_add_service(UUID_TYPE_128, &service_2_uuid, PRIMARY_SERVICE, 7, &service_2_handle);
-
-	if( ret != BLE_STATUS_SUCCESS ) {
-		printf("aci_gatt_add_service 2 : Failed !! \n\r");
-	}
-
-	BLUENRG_memcpy(char_1_1_uuid.Char_UUID_128, CHAR_1_1_UUID, 16);
-	BLUENRG_memcpy(char_1_2_uuid.Char_UUID_128, CHAR_1_2_UUID, 16);
-	BLUENRG_memcpy(char_2_1_uuid.Char_UUID_128, CHAR_2_1_UUID, 16);
-	BLUENRG_memcpy(char_2_2_uuid.Char_UUID_128, CHAR_2_2_UUID, 16);
+	BLUENRG_memcpy(char_uuid_tx.Char_UUID_128, CHAR_1_1_UUID, 16);
+	BLUENRG_memcpy(char_uuid_rx.Char_UUID_128, CHAR_1_2_UUID, 16);
 
 	/*
 	 * tBleStatus aci_gatt_add_char(uint16_t Service_Handle,
@@ -71,45 +62,50 @@ tBleStatus add_services(void) {
      *                       uint8_t Is_Variable,
      *                       uint16_t *Char_Handle)
 	 */
-	ret = aci_gatt_add_char(service_1_handle, UUID_TYPE_128, &char_1_1_uuid, 2, CHAR_PROP_READ, ATTR_PERMISSION_NONE, GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 0, 0, &char_1_1_handle);
-	if( ret != BLE_STATUS_SUCCESS ) {
-		printf("aci_gatt_add_char 1.1 : Failed !! \n\r");
-	}
 
-	ret = aci_gatt_add_char(service_1_handle, UUID_TYPE_128, &char_1_2_uuid, 2, CHAR_PROP_READ, ATTR_PERMISSION_NONE, GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 0, 0, &char_1_2_handle);
-	if( ret != BLE_STATUS_SUCCESS ) {
-		printf("aci_gatt_add_char 1.2 : Failed !! \n\r");
-	}
 
-	ret = aci_gatt_add_char(service_2_handle, UUID_TYPE_128, &char_2_1_uuid, 2, CHAR_PROP_READ, ATTR_PERMISSION_NONE, GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 0, 0, &char_2_1_handle);
+	ret = aci_gatt_add_char(service_chat_handle,
+							UUID_TYPE_128,
+							&char_uuid_tx,
+							20,
+							CHAR_PROP_NOTIFY,
+							ATTR_PERMISSION_NONE,
+							0,
+							0,
+							1,
+							&char_tx_handle);
+
 	if( ret != BLE_STATUS_SUCCESS ) {
 		printf("aci_gatt_add_char 2.1 : Failed !! \n\r");
 	}
 
-	ret = aci_gatt_add_char(service_2_handle, UUID_TYPE_128, &char_2_2_uuid, 2, CHAR_PROP_READ, ATTR_PERMISSION_NONE, GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP, 0, 0, &char_2_2_handle);
+	ret = aci_gatt_add_char(service_chat_handle,
+							UUID_TYPE_128,
+							&char_uuid_rx,
+							20,
+							CHAR_PROP_WRITE | CHAR_PROP_WRITE_WITHOUT_RESP,
+							ATTR_PERMISSION_NONE,
+							GATT_NOTIFY_ATTRIBUTE_WRITE,
+							0,
+							1,
+							&char_rx_handle);
 
 	return ret;
 }
 
-void update_1_1_data(int16_t new_data){
-	tBleStatus ret;
+uint8_t rcv_data[20];
 
-	/* Update characteristic value*/
-	/*
-	 * tBleStatus aci_gatt_update_char_value(uint16_t Service_Handle,
-                                      uint16_t Char_Handle,
-                                      uint8_t Val_Offset,
-                                      uint8_t Char_Value_Length,
-                                      uint8_t Char_Value[])
-	 */
-	ret = aci_gatt_update_char_value(service_1_handle, char_1_1_handle, 0, 2, (uint8_t*)&new_data);
+void receive_data(uint8_t* new_data, uint8_t no_bytes){
 
-	if( ret != BLE_STATUS_SUCCESS ) {
-		printf("Characteristic 1.1 : Failed !! \n\r");
+	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+
+	for(int i=0; i < no_bytes;i++){
+		rcv_data[i] = new_data[i];
 	}
+
 }
 
-void update_1_2_data(int16_t new_data){
+void send_data(uint8_t* new_data, uint8_t no_bytes){
 	tBleStatus ret;
 
 	/* Update characteristic value*/
@@ -120,92 +116,44 @@ void update_1_2_data(int16_t new_data){
                                       uint8_t Char_Value_Length,
                                       uint8_t Char_Value[])
 	 */
-	ret = aci_gatt_update_char_value(service_1_handle, char_1_2_handle, 0, 2, (uint8_t*)&new_data);
-
-	if( ret != BLE_STATUS_SUCCESS ) {
-		printf("Characteristic 1.2 : Failed !! \n\r");
-	}
-}
-
-void update_2_1_data(int16_t new_data){
-	tBleStatus ret;
-
-	/* Update characteristic value*/
-	/*
-	 * tBleStatus aci_gatt_update_char_value(uint16_t Service_Handle,
-                                      uint16_t Char_Handle,
-                                      uint8_t Val_Offset,
-                                      uint8_t Char_Value_Length,
-                                      uint8_t Char_Value[])
-	 */
-	ret = aci_gatt_update_char_value(service_2_handle, char_2_1_handle, 0, 2, (uint8_t*)&new_data);
-
-	if( ret != BLE_STATUS_SUCCESS ) {
-		printf("Characteristic 2.1 : Failed !! \n\r");
-	}
-}
-
-void update_2_2_data(int16_t new_data){
-	tBleStatus ret;
-
-	/* Update characteristic value*/
-	/*
-	 * tBleStatus aci_gatt_update_char_value(uint16_t Service_Handle,
-                                      uint16_t Char_Handle,
-                                      uint8_t Val_Offset,
-                                      uint8_t Char_Value_Length,
-                                      uint8_t Char_Value[])
-	 */
-	ret = aci_gatt_update_char_value(service_2_handle, char_2_2_handle, 0, 2, (uint8_t*)&new_data);
+	ret = aci_gatt_update_char_value(service_chat_handle, char_tx_handle, 0, no_bytes, new_data);
 
 	if( ret != BLE_STATUS_SUCCESS ) {
 		printf("Characteristic 2.2 : Failed !! \n\r");
 	}
 }
 
-/*
-void GAP_ConnectionComplete_CB(uint8_t addr[6], uint16_t handle) {
-	connected = 1;
-	connection_handle = handle;
 
-	printf("Connection Complete ...\n\r");
+void Attribute_Modify_CB(uint16_t handle, uint8_t data_length, uint8_t *att_data){
+	if(handle == char_rx_handle + 1){
+		receive_data(att_data, data_length);
+	}
+	else if (handle == char_tx_handle + 2) {
+		if(att_data[0] == 0x01) {
+			notification_enabled = 1;
+		}
+	}
 }
 
-void GAP_DisconnectionComplete_CB(uint8_t addr[6], uint16_t handle) {
-	printf("Disconnection Complete ...\n\r");
-}
-*/
-
-void Read_Request_CB(uint16_t handle)
+void aci_gatt_attribute_modified_event(uint16_t Connection_Handle,
+                                       uint16_t Attr_Handle,
+                                       uint16_t Offset,
+                                       uint16_t Attr_Data_Length,
+                                       uint8_t Attr_Data[])
 {
-	if(handle == char_1_1_handle + 1) {
-		prop1 += 2;
-		update_1_1_data(prop1);
-	}
-	else if(handle == char_1_2_handle + 1) {
-		prop2 += 2;
-		update_1_2_data(prop2);
-	}
-	else if(handle == char_2_1_handle + 1) {
-		prop3 += 2;
-		update_2_1_data(prop3);
-	}
-	else if(handle == char_2_2_handle + 1) {
-		prop4 += 2;
-		update_2_2_data(prop4);
-	}
+	Attribute_Modify_CB(Attr_Handle, Attr_Data_Length, Attr_Data);
+}
 
-	if (connection_handle != 0)
+
+void aci_gatt_notification_event(uint16_t Connection_Handle,
+                                 uint16_t Attribute_Handle,
+                                 uint8_t Attribute_Value_Length,
+                                 uint8_t Attribute_Value[])
+{
+	if(Attribute_Handle == char_tx_handle + 2)
 	{
-		aci_gatt_allow_read(connection_handle);
+		receive_data(Attribute_Value, Attribute_Value_Length);
 	}
-}
-
-void aci_gatt_read_permit_req_event(uint16_t Connection_Handle,
-									uint16_t Attribute_Handle,
-									uint16_t Offset)
-{
-	Read_Request_CB(Attribute_Handle);
 }
 
 

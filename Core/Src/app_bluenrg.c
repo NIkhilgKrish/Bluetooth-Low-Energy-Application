@@ -77,6 +77,7 @@ void blueapp_init(void) {
 
 }
 
+uint8_t btn_state;
 void bluenrg_process(void) {
 	tBleStatus ret;
 
@@ -89,5 +90,13 @@ void bluenrg_process(void) {
 	}
 
 	hci_user_evt_proc();
+
+	/* Get Button State */
+	btn_state = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13);
+	/*If action data is processed*/
+	if(btn_state == 0) {
+		uint8_t data[2] = {'a', 'a'};
+		send_data(data, sizeof(data));
+	}
 }
 
